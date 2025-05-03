@@ -11,6 +11,7 @@ deepsleep/
 │   ├── js/              # JavaScript 파일
 │   └── index.html       # 메인 페이지
 ├── server/              # Express.js 서버
+│   ├── data/            # 데이터 처리 모듈
 │   ├── routes/          # API 라우트
 │   ├── mqtt.js          # MQTT 클라이언트
 │   └── server.js        # 서버 메인 파일
