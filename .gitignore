@@ -55,3 +55,7 @@ __pycache__/
 *.pyd
 *.pyw
 *.pyz
+
+# mqtt 
+mqtt/data/
+mqtt/log/
