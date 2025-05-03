@@ -6,7 +6,44 @@
 
 ## 아키텍처 구성
 
-![시스템 아키텍처](https://mermaid.ink/img/pako:eNqNk09v2zAMxb-K4FMG7EO2XoIAbRdgGDCgHVasK3RQJCYRYkuGJLdZkO-eSHZcO2tR-WJL7_34R1LsjWQMvDF_VEKfRJONyrbAh0pCHIXCKtBAcAoLmf6Gp1-L02wGx_jVp49wXORbxyhIwSWRJVqgOtCK0RmZQpHAl_gRrXSXjXXiMYjIlL-QZJ2BEyO91a4DuRsJBx8W2LcyYU0pkx8m5M5EwgECQ_LRy_Xv1YfJH9BNiw1ZVy9hvsSMQ00HiAc4lRQfxvIAp4r-XqHrNfTv3-Z2Zw_wXbRq4CtdqbI1Qr7C-dXLTp7EGhZRFMUL2BZUkUQoNM7bIKXgW1LW-B5Db41S76fgH6aYLrH5x-rNfpnR-D_Nif7GfR-4lK5BmrFpkHb8XM7jbDCHiW0G0zk7ORFW7DQEfFZXcNbTxZ9YeSIJumuNpjg_0DJZO3xPXbuUqT0_Xm_3hH0nHI33bsOuLCWkpGvDdm4jtTRXz4z_VNSjd-g0bFXvXvtODrJ3OXofqGFxK4zWN6yjpnc9pZbrqmqdw7dRLblxVmx7ZnStHb5K7vvs2NRwc-HV83N1V1TUcHPzHNbC2Iu_F5VzpQ)
+![시스템 아키텍처]
+
+```mermaid
+graph TD
+    subgraph 사용자_인터페이스
+        A[클라이언트 - 웹 인터페이스]
+    end
+
+    subgraph 서버
+        B[서버 - Express.JS]
+        C[MQTT 브로커 - Mosquitto]
+    end
+
+    subgraph IoT_기기
+        D[라즈베리 파이]
+        E[습도 센서]
+        F[Fitbit 심박수]
+        G[가습기]
+        H[스피커]
+    end
+
+    A <-->|REST API| B
+    B <-->|MQTT Pub/Sub| C
+    C <-->|MQTT Pub/Sub| D
+    D -->|GPIO 제어| G
+    D -->|GPIO 제어| H
+    E -->|데이터 수집| D
+    F -->|데이터 수집| D
+
+    %% 데이터 흐름 설명
+    classDef client fill:#f9f,stroke:#333,stroke-width:1px
+    classDef server fill:#bbf,stroke:#333,stroke-width:1px
+    classDef iot fill:#bfb,stroke:#333,stroke-width:1px
+
+    class A client
+    class B,C server
+    class D,E,F,G,H iot
+```
 
 ## 컴포넌트 구성
 
