@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { mqttClient } = require("../server");
+const { mqttClient } = require("../mqtt");
 
 // 현재 수면 데이터 상태 조회
 router.get("/sleep/status", (req, res) => {
