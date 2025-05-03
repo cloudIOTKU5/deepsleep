@@ -12,6 +12,7 @@ deepsleep/
 │   └── index.html       # 메인 페이지
 ├── server/              # Express.js 서버
 │   ├── routes/          # API 라우트
+│   ├── mqtt.js          # MQTT 클라이언트
 │   └── server.js        # 서버 메인 파일
 ├── raspberry/           # 라즈베리 파이 코드
 │   └── sleep_monitor.py # 수면 모니터링 및 기기 제어

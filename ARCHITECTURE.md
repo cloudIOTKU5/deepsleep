@@ -6,8 +6,6 @@
 
 ## 아키텍처 구성
 
-![시스템 아키텍처]
-
 ```mermaid
 graph TD
     subgraph 사용자_인터페이스
@@ -17,12 +15,12 @@ graph TD
     subgraph 서버
         B[서버 - Express.JS]
         C[MQTT 브로커 - Mosquitto]
+        F[Fitbit 심박수]
     end
 
     subgraph IoT_기기
         D[라즈베리 파이]
         E[습도 센서]
-        F[Fitbit 심박수]
         G[가습기]
         H[스피커]
     end
@@ -30,10 +28,11 @@ graph TD
     A <-->|REST API| B
     B <-->|MQTT Pub/Sub| C
     C <-->|MQTT Pub/Sub| D
-    D -->|GPIO 제어| G
-    D -->|GPIO 제어| H
+    B -->|제어 명령| C
+    D -->|GPIO 실행| G
+    D -->|GPIO 실행| H
     E -->|데이터 수집| D
-    F -->|데이터 수집| D
+    F -->|데이터 수집| B
 
     %% 데이터 흐름 설명
     classDef client fill:#f9f,stroke:#333,stroke-width:1px
@@ -41,8 +40,8 @@ graph TD
     classDef iot fill:#bfb,stroke:#333,stroke-width:1px
 
     class A client
-    class B,C server
-    class D,E,F,G,H iot
+    class B,C,F server
+    class D,E,G,H iot
 ```
 
 ## 컴포넌트 구성
@@ -58,6 +57,8 @@ graph TD
    - RESTful API 엔드포인트 제공
    - MQTT 클라이언트 내장하여 IoT 기기와 통신
    - 사용자 요청 처리 및 데이터 관리
+   - Fitbit API를 통한 심박수 데이터 수집
+   - 디바이스 제어 로직 처리 및 명령 생성
 
 3. **MQTT 브로커 (Mosquitto)**
 
@@ -66,18 +67,19 @@ graph TD
    - Docker를 사용하여 쉽게 배포 가능
 
 4. **라즈베리 파이**
-   - 센서 데이터 수집 (습도, Fitbit 심박수)
-   - GPIO를 통한 가습기와 스피커 제어
+   - 습도 센서 데이터 수집
+   - 서버로부터 수신한 제어 명령에 따라 GPIO를 통한 가습기와 스피커 제어
    - MQTT를 통해 서버와 통신
 
 ## 데이터 흐름
 
-1. 라즈베리 파이가 센서에서 수면 데이터(습도, 심박수) 수집
-2. MQTT를 통해 서버로 데이터 전송
-3. 서버는 데이터를 처리하고 필요시 제어 명령 생성
-4. 제어 명령은 MQTT를 통해 라즈베리 파이로 전송
-5. 라즈베리 파이는 GPIO를 통해 가습기와 스피커 제어
-6. 웹 클라이언트는 서버의 RESTful API를 호출하여 데이터 조회 및 수동 제어
+1. 라즈베리 파이가 습도 센서에서 데이터 수집
+2. 서버가 Fitbit API를 통해 심박수 데이터 수집
+3. 센서 데이터는 MQTT를 통해 서버로 전송됨
+4. 서버는 데이터를 처리하고 디바이스 제어 결정을 내림
+5. 제어 명령은 MQTT를 통해 라즈베리 파이로 전송
+6. 라즈베리 파이는 GPIO를 통해 가습기와 스피커 제어 명령 실행
+7. 웹 클라이언트는 서버의 RESTful API를 호출하여 데이터 조회 및 수동 제어 요청
 
 ## API 구조
 
