@@ -1,0 +1,24 @@
+{
+  "name": "deepsleep",
+  "version": "1.0.0",
+  "description": "수면 중 습도와 심박수에 따라 가습기와 스피커를 제어하는 스마트 헬스케어 서비스",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "nodemon server/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Team5",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "mongoose": "^7.5.2",
+    "mqtt": "^5.0.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
