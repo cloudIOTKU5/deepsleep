@@ -26,7 +26,7 @@ async function processAutomation() {
 
   // 심박수에 따른 스피커 제어
   if (heartRate > automationSettings.heartRateThreshold) {
-    const volume = 30;
+    const volume = repository.getCurrentDeviceStatus().volume;
     controlDevice("speaker", "on", { volume });
     repository.updateDeviceStatus({ speaker: "on", volume });
   } else {
