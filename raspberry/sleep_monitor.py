@@ -3,7 +3,6 @@ import time
 import json
 import random
 import paho.mqtt.client as mqtt
-import requests
 from dotenv import load_dotenv
 import os
 
@@ -17,16 +16,8 @@ MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
 MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 MQTT_KEEPALIVE = 60
 
-# Fitbit API 설정 (실제 환경에서 필요)
-FITBIT_API_BASE = "https://api.fitbit.com/1/user/-"
-FITBIT_ACCESS_TOKEN = os.getenv("FITBIT_ACCESS_TOKEN", "")
-
-# 자동화 설정 기본값
-automation_settings = {
-    "enabled": True,
-    "humidityThreshold": 40,  # 40% 이하면 가습기 켜기
-    "heartRateThreshold": 80,  # 80bpm 이상이면 스피커로 백색소음 재생
-}
+# 자동화 설정
+automation_enabled = True
 
 # GPIO 설정
 def setup_gpio():
@@ -83,65 +74,17 @@ def control_speaker(status, volume=50):
 
 # 자동화 설정 업데이트
 def update_automation_settings(settings):
-    global automation_settings
+    global automation_enabled
     
     if "enabled" in settings:
-        automation_settings["enabled"] = settings["enabled"]
+        automation_enabled = settings["enabled"]
     
-    if "humidityThreshold" in settings:
-        automation_settings["humidityThreshold"] = settings["humidityThreshold"]
-    
-    if "heartRateThreshold" in settings:
-        automation_settings["heartRateThreshold"] = settings["heartRateThreshold"]
-    
-    print(f"자동화 설정 업데이트: {automation_settings}")
+    print(f"자동화 설정 업데이트: 활성화 = {automation_enabled}")
 
 # 습도 측정 (실제 환경에서는 DHT22 센서 사용)
 def get_humidity():
     # 시뮬레이션: 30-70% 사이의 습도 값 임의 생성
     return random.randint(30, 70)
-
-# Fitbit에서 심박수 데이터 가져오기 (실제 환경에서는 Fitbit API 사용)
-def get_heart_rate():
-    if FITBIT_ACCESS_TOKEN:
-        try:
-            # 실제 Fitbit API 호출 추후 구현
-            # headers = {"Authorization": f"Bearer {FITBIT_ACCESS_TOKEN}"}
-            # response = requests.get(f"{FITBIT_API_BASE}/activities/heart/date/today/1d.json", headers=headers)
-            # data = response.json()
-            # return data["activities-heart"][0]["value"]["restingHeartRate"]
-            pass
-        except Exception as e:
-            print(f"Fitbit API 호출 오류: {e}")
-    
-    # 시뮬레이션: 50-100bpm 사이의 심박수 값
-    return random.randint(50, 100)
-
-# 자동화 제어 로직
-def process_automation():
-    if not automation_settings["enabled"]:
-        return
-    
-    humidity = get_humidity()
-    heart_rate = get_heart_rate()
-    
-    print(f"현재 측정값: 습도 {humidity}%, 심박수 {heart_rate}bpm")
-    
-    # MQTT로 센서 데이터 발행
-    client.publish("sensors/sleep/humidity", str(humidity))
-    client.publish("sensors/sleep/heartrate", str(heart_rate))
-    
-    # 습도에 따른 가습기 제어
-    if humidity < automation_settings["humidityThreshold"]:
-        control_humidifier("on")
-    else:
-        control_humidifier("off")
-    
-    # 심박수에 따른 스피커 제어
-    if heart_rate > automation_settings["heartRateThreshold"]:
-        control_speaker("on", 30)  # 낮은 볼륨으로 백색소음 재생 (30 임의 설정)
-    else:
-        control_speaker("off")
 
 # 메인 함수
 def main():
@@ -166,7 +109,11 @@ def main():
         
         # 메인 루프
         while True:
-            process_automation()
+            # 습도 측정 및 서버로 전송
+            humidity = get_humidity()
+            print(f"현재 측정값: 습도 {humidity}%")
+            client.publish("sensors/sleep/humidity", str(humidity))
+            
             time.sleep(10)  # 10초마다 체크
             
     except KeyboardInterrupt:

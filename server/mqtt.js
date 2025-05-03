@@ -18,7 +18,17 @@ mqttClient.on("connect", () => {
 // MQTT 메시지 수신 이벤트
 mqttClient.on("message", (topic, message) => {
   console.log(`토픽 ${topic}에서 메시지 수신: ${message.toString()}`);
-  // 수신한 메시지 처리 로직 (데이터베이스 저장, 가습기/스피커 제어 명령 등)
 });
 
-module.exports = { mqttClient };
+// 기기 제어 함수 (다른 모듈에서 사용 가능)
+function controlDevice(deviceType, status, options = {}) {
+  const topic = `control/${deviceType}`;
+  const payload = { status, ...options };
+
+  mqttClient.publish(topic, JSON.stringify(payload));
+  console.log(`${deviceType} 제어 명령 전송: ${JSON.stringify(payload)}`);
+
+  return true;
+}
+
+module.exports = { mqttClient, controlDevice };
