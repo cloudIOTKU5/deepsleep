@@ -3,10 +3,11 @@ import time
 import json
 import random
 import paho.mqtt.client as mqtt
-import RPi.GPIO as GPIO
 import requests
 from dotenv import load_dotenv
 import os
+
+from mock import MockGPIOHandler
 
 # 환경 변수 로드
 load_dotenv()
@@ -15,10 +16,6 @@ load_dotenv()
 MQTT_BROKER = os.getenv("MQTT_BROKER", "localhost")
 MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 MQTT_KEEPALIVE = 60
-
-# GPIO 핀 설정
-HUMIDIFIER_PIN = 17  # 가습기 제어용 GPIO 핀
-SPEAKER_PIN = 18     # 스피커 제어용 GPIO 핀
 
 # Fitbit API 설정 (실제 환경에서 필요)
 FITBIT_API_BASE = "https://api.fitbit.com/1/user/-"
@@ -33,13 +30,9 @@ automation_settings = {
 
 # GPIO 설정
 def setup_gpio():
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(HUMIDIFIER_PIN, GPIO.OUT)
-    GPIO.setup(SPEAKER_PIN, GPIO.OUT)
-    
-    # 초기 상태 설정 (둘 다 꺼짐)
-    GPIO.output(HUMIDIFIER_PIN, GPIO.LOW)
-    GPIO.output(SPEAKER_PIN, GPIO.LOW)
+    global gpio_handler
+    # gpio_handler = GPIOHandler()
+    gpio_handler = MockGPIOHandler() # 일반 PC 테스트용
 
 # MQTT 연결 시 콜백
 def on_connect(client, userdata, flags, rc):
@@ -73,20 +66,19 @@ def on_message(client, userdata, msg):
 # 가습기 제어
 def control_humidifier(status):
     if status == "on":
-        GPIO.output(HUMIDIFIER_PIN, GPIO.HIGH)
+        gpio_handler.control_humidifier(True)
         print("가습기가 켜졌습니다.")
     else:
-        GPIO.output(HUMIDIFIER_PIN, GPIO.LOW)
+        gpio_handler.control_humidifier(False)
         print("가습기가 꺼졌습니다.")
 
 # 스피커 제어
 def control_speaker(status, volume=50):
     if status == "on":
-        GPIO.output(SPEAKER_PIN, GPIO.HIGH)
+        gpio_handler.control_speaker(True, volume)
         print(f"스피커가 켜졌습니다. 볼륨: {volume}")
-        # 볼륨 조절 로직 (실제 환경에서는 스피커 라이브러리 사용)
     else:
-        GPIO.output(SPEAKER_PIN, GPIO.LOW)
+        gpio_handler.control_speaker(False)
         print("스피커가 꺼졌습니다.")
 
 # 자동화 설정 업데이트
@@ -181,7 +173,7 @@ def main():
         print("프로그램 종료")
     finally:
         client.loop_stop()
-        GPIO.cleanup()
+        gpio_handler.cleanup()
 
 if __name__ == "__main__":
     main() 
