@@ -35,7 +35,7 @@ deepsleep/
 1. 필요한 패키지 설치:
 
 ```bash
-npm install
+pnpm install
 ```
 
 2. MQTT 브로커 실행 (Docker 필요):
@@ -47,7 +47,7 @@ docker-compose up -d
 3. 서버 실행:
 
 ```bash
-npm start
+pnpm start
 ```
 
 4. 라즈베리 파이에서 모니터링 스크립트 실행:
