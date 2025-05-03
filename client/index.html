@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>딥슬립 - 스마트 수면 관리 시스템</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="my-4 text-center">
+        <h1>딥슬립</h1>
+        <p class="lead">스마트 수면 관리 시스템</p>
+      </header>
+
+      <div class="row">
+        <!-- 현재 상태 -->
+        <div class="col-md-6 mb-4">
+          <div class="card">
+            <div class="card-header">
+              <h4>현재 수면 환경</h4>
+            </div>
+            <div class="card-body">
+              <div class="d-flex justify-content-between mb-3">
+                <div>
+                  <h5>습도</h5>
+                  <p class="display-4" id="current-humidity">--</p>
+                </div>
+                <div>
+                  <h5>심박수</h5>
+                  <p class="display-4" id="current-heartrate">--</p>
+                </div>
+              </div>
+              <div class="row mt-4">
+                <div class="col-6">
+                  <div class="device-status">
+                    <h5>가습기</h5>
+                    <span class="badge" id="humidifier-status">꺼짐</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="device-status">
+                    <h5>스피커</h5>
+                    <span class="badge" id="speaker-status">꺼짐</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 기기 수동 제어 -->
+        <div class="col-md-6 mb-4">
+          <div class="card">
+            <div class="card-header">
+              <h4>기기 제어</h4>
+            </div>
+            <div class="card-body">
+              <div class="mb-4">
+                <h5>가습기</h5>
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="humidifier-toggle"
+                  />
+                  <label class="form-check-label" for="humidifier-toggle"
+                    >전원</label
+                  >
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <h5>스피커</h5>
+                <div class="form-check form-switch mb-2">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="speaker-toggle"
+                  />
+                  <label class="form-check-label" for="speaker-toggle"
+                    >전원</label
+                  >
+                </div>
+                <label for="volume-control" class="form-label"
+                  >볼륨: <span id="volume-value">50</span></label
+                >
+                <input
+                  type="range"
+                  class="form-range"
+                  min="0"
+                  max="100"
+                  value="50"
+                  id="volume-control"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 자동화 설정 -->
+      <div class="row">
+        <div class="col-md-12 mb-4">
+          <div class="card">
+            <div
+              class="card-header d-flex justify-content-between align-items-center"
+            >
+              <h4>자동화 설정</h4>
+              <div class="form-check form-switch">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="automation-toggle"
+                  checked
+                />
+                <label class="form-check-label" for="automation-toggle"
+                  >자동화 활성화</label
+                >
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="humidity-threshold" class="form-label"
+                    >습도 임계값:
+                    <span id="humidity-threshold-value">40</span>%</label
+                  >
+                  <div class="d-flex align-items-center">
+                    <span>낮음</span>
+                    <input
+                      type="range"
+                      class="form-range mx-2"
+                      min="20"
+                      max="80"
+                      value="40"
+                      id="humidity-threshold"
+                    />
+                    <span>높음</span>
+                  </div>
+                  <small class="text-muted"
+                    >설정한 값보다 습도가 낮아지면 자동으로 가습기가
+                    작동합니다.</small
+                  >
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="heartrate-threshold" class="form-label"
+                    >심박수 임계값:
+                    <span id="heartrate-threshold-value">80</span>bpm</label
+                  >
+                  <div class="d-flex align-items-center">
+                    <span>낮음</span>
+                    <input
+                      type="range"
+                      class="form-range mx-2"
+                      min="60"
+                      max="100"
+                      value="80"
+                      id="heartrate-threshold"
+                    />
+                    <span>높음</span>
+                  </div>
+                  <small class="text-muted"
+                    >설정한 값보다 심박수가 높아지면 자동으로 백색소음이
+                    재생됩니다.</small
+                  >
+                </div>
+              </div>
+              <div class="text-center mt-3">
+                <button id="save-settings" class="btn btn-primary">
+                  설정 저장
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 수면 데이터 -->
+      <div class="row">
+        <div class="col-md-12 mb-4">
+          <div class="card">
+            <div class="card-header">
+              <h4>수면 데이터</h4>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>날짜</th>
+                      <th>평균 습도</th>
+                      <th>평균 심박수</th>
+                      <th>수면 품질 점수</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sleep-records">
+                    <!-- 자바스크립트로 동적 생성 -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="text-center py-4 mt-5 text-muted">
+      <div class="container">
+        <p>© 2023 딥슬립 - 스마트 수면 관리 시스템</p>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.0/axios.min.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
