@@ -47,3 +47,11 @@ temp/
 # 기타
 .vercel
 .netlify
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
