@@ -18,7 +18,15 @@ mqttClient.on("message", async (topic, message) => {
 
 // 현재 수면 데이터 상태 조회
 router.get("/sleep/status", (req, res) => {
-  res.json(repository.getCurrentSensorData());
+  const currentSensorData = repository.getCurrentSensorData();
+  const currentDeviceStatus = repository.getCurrentDeviceStatus();
+  res.json({
+    humidity: currentSensorData.humidity,
+    heartRate: currentSensorData.heartRate,
+    humidifierStatus: currentDeviceStatus.humidifier,
+    speakerStatus: currentDeviceStatus.speaker,
+    volume: currentDeviceStatus.volume,
+  });
 });
 
 // 수면 데이터 기록 가져오기

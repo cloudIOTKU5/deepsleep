@@ -126,6 +126,8 @@ async function fetchCurrentStatus() {
     // 장치 상태 업데이트
     updateHumidifierStatus(data.humidifierStatus);
     updateSpeakerStatus(data.speakerStatus);
+    volumeControl.value = data.volume;
+    volumeValue.textContent = data.volume;
   } catch (error) {
     console.error("상태 조회 오류:", error);
   }
