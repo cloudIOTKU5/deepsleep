@@ -1,39 +1,29 @@
 const express = require("express");
 const router = express.Router();
 const { mqttClient } = require("../mqtt");
-const sleepData = require("../data/sleepData");
+const settings = require("../automation/setting");
+const repository = require("../data/repository");
 const automationController = require("../automation/controller");
+const { fetchFitbitHeartRate } = require("../data/fitbit");
 
 // MQTT 메시지 처리 설정
-mqttClient.on("message", (topic, message) => {
+mqttClient.on("message", async (topic, message) => {
   if (topic === "sensors/sleep/humidity") {
     const humidity = parseInt(message.toString());
-    automationController.processSensorData("humidity", humidity);
+    const heartRate = await fetchFitbitHeartRate();
+    repository.updateSensorData({ humidity, heartRate });
+    automationController.processAutomation();
   }
 });
 
 // 현재 수면 데이터 상태 조회
 router.get("/sleep/status", (req, res) => {
-  res.json(sleepData.getCurrentSensorData());
+  res.json(repository.getCurrentSensorData());
 });
 
 // 수면 데이터 기록 가져오기
 router.get("/sleep/records", (req, res) => {
-  // 더미데이터
-  res.json([
-    {
-      date: "2025-05-03",
-      averageHumidity: 55,
-      averageHeartRate: 64,
-      sleepQualityScore: 85,
-    },
-    {
-      date: "2025-05-02",
-      averageHumidity: 62,
-      averageHeartRate: 68,
-      sleepQualityScore: 78,
-    },
-  ]);
+  res.json(repository.getSleepDataRecords());
 });
 
 // 가습기 제어
@@ -48,7 +38,7 @@ router.post("/device/humidifier", (req, res) => {
   mqttClient.publish("control/humidifier", JSON.stringify({ status }));
 
   // 상태 업데이트
-  sleepData.updateDeviceStatus("humidifier", status);
+  repository.updateDeviceStatus({ humidifier: status });
 
   res.json({
     success: true,
@@ -72,7 +62,7 @@ router.post("/device/speaker", (req, res) => {
   mqttClient.publish("control/speaker", JSON.stringify({ status, volume }));
 
   // 상태 업데이트
-  sleepData.updateDeviceStatus("speaker", status);
+  repository.updateDeviceStatus({ speaker: status, volume });
 
   res.json({
     success: true,
@@ -107,7 +97,7 @@ router.post("/settings/automation", (req, res) => {
   }
 
   // 설정 업데이트
-  sleepData.updateAutomationSettings({
+  settings.updateAutomationSettings({
     enabled,
     humidityThreshold,
     heartRateThreshold,
