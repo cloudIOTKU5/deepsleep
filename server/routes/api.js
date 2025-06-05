@@ -85,6 +85,12 @@ router.post("/device/speaker", (req, res) => {
 router.post("/settings/automation", (req, res) => {
   const { enabled, humidityThreshold, heartRateThreshold } = req.body;
 
+  console.log("자동화 설정 요청:", {
+    enabled,
+    humidityThreshold,
+    heartRateThreshold,
+  });
+
   // 요청 검증
   if (typeof enabled !== "boolean") {
     return res

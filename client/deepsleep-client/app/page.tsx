@@ -230,7 +230,7 @@ export default function SleepDashboard() {
       const response = await saveAutomationSettings(settings)
 
       if (response.success) {
-        toast.success("설정이 저장되었습니다.")
+        toast.success(response.message)
       }
     } catch (error) {
       console.error("Error saving settings:", error)
