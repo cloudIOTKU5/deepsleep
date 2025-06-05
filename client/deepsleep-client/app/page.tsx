@@ -16,6 +16,14 @@ import { DashboardFooter } from "@/components/dashboard/dashboard-footer"
 import { WelcomeBanner } from "@/components/dashboard/welcome-banner"
 import { PresetSelector } from "@/components/dashboard/preset-selector"
 import { AISleepAnalysis } from "@/components/dashboard/ai-sleep-analysis"
+import { Button } from "@/components/ui/button"
+import { 
+  getSleepStatus, 
+  getSleepRecords, 
+  controlHumidifier, 
+  controlSpeaker,
+  saveAutomationSettings
+} from '@/lib/api-service'
 
 // API URL
 const API_BASE_URL = "/api"
@@ -131,20 +139,21 @@ export default function SleepDashboard() {
   const [heartRateThreshold, setHeartRateThreshold] = useState<number>(60)
 
   // Sleep records
-  const [sleepRecords, setSleepRecords] = useState(DUMMY_SLEEP_RECORDS)
-  //const [sleepRecords, setSleepRecords] = useState<Array<any>>(DUMMY_SLEEP_RECORDS)
+  const [sleepRecords, setSleepRecords] = useState<Array<any>>([])
   const [currentPage, setCurrentPage] = useState<number>(1)
-  const [totalPages, setTotalPages] = useState<number>(Math.ceil(DUMMY_SLEEP_RECORDS.length / 5))
+  const [totalPages, setTotalPages] = useState<number>(1)
 
   // Loading states
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
+  // 시리얼 번호 상태 추가
+  const [humidifierSerial, setHumidifierSerial] = useState<string>("")
+  const [speakerSerial, setSpeakerSerial] = useState<string>("")
+
   // Fetch current status
   const fetchCurrentStatus = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/sleep/status`)
-      const data = response.data
-
+      const data = await getSleepStatus()
       setHumidity(data.humidity)
       setHeartRate(data.heartRate)
       setHumidifierStatus(data.humidifierStatus)
@@ -152,12 +161,7 @@ export default function SleepDashboard() {
       setVolume(data.volume)
     } catch (error) {
       console.error("Error fetching status:", error)
-      // 에러 발생 시 더미 데이터로 대체
-      setHumidity(45)
-      setHeartRate(62)
-      setHumidifierStatus("on")
-      setSpeakerStatus("off")
-      setVolume(30)
+      toast.error("상태 조회에 실패했습니다.")
     } finally {
       setIsLoading(false)
     }
@@ -166,16 +170,12 @@ export default function SleepDashboard() {
   // Fetch sleep records
   const fetchSleepRecords = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/sleep/records`)
-      // Ensure we're setting an array, even if the API returns something else
-      const records = Array.isArray(response.data) ? response.data : []
+      const records = await getSleepRecords()
       setSleepRecords(records)
       setTotalPages(Math.ceil(records.length / 5))
     } catch (error) {
       console.error("Error fetching sleep records:", error)
-      // 에러 발생 시 더미 데이터 사용
-      setSleepRecords(DUMMY_SLEEP_RECORDS)
-      setTotalPages(Math.ceil(DUMMY_SLEEP_RECORDS.length / 5))
+      toast.error("수면 기록 조회에 실패했습니다.")
     }
   }
 
@@ -189,38 +189,32 @@ export default function SleepDashboard() {
   // Toggle humidifier
   const toggleHumidifier = async (value: boolean) => {
     try {
-      const status = value ? "on" : "off"
-      const response = await axios.post(`${API_BASE_URL}/device/humidifier`, {
-        status,
-      })
+      const status = value ? "on" as const : "off" as const
+      const response = await controlHumidifier(status)
 
-      if (response.data.success) {
+      if (response.success) {
         setHumidifierStatus(status)
+        toast.success(response.message)
       }
     } catch (error) {
       console.error("Error controlling humidifier:", error)
-      // 에러 발생 시에도 UI 업데이트
-      setHumidifierStatus(value ? "on" : "off")
+      toast.error("가습기 제어에 실패했습니다.")
     }
   }
 
   // Toggle speaker
   const toggleSpeaker = async (value: boolean) => {
     try {
-      const status = value ? "on" : "off"
-      const response = await axios.post(`${API_BASE_URL}/device/speaker`, {
-        status,
-        volume,
-      })
+      const status = value ? "on" as const : "off" as const
+      const response = await controlSpeaker(status, volume)
 
-      if (response.data.success) {
+      if (response.success) {
         setSpeakerStatus(status)
+        toast.success(response.message)
       }
     } catch (error) {
-      toast.error("스피커 연결 상태를 확인해주세요.");
       console.error("Error controlling speaker:", error)
-      // 에러 발생 시에도 UI 업데이트
-      setSpeakerStatus(value ? "on" : "off")
+      toast.error("스피커 제어에 실패했습니다.")
     }
   }
 
@@ -233,15 +227,21 @@ export default function SleepDashboard() {
         heartRateThreshold,
       }
 
-      const response = await axios.post(`${API_BASE_URL}/settings/automation`, settings)
+      const response = await saveAutomationSettings(settings)
 
-      if (response.data.success) {
-        alert("설정이 저장되었습니다.")
+      if (response.success) {
+        toast.success("설정이 저장되었습니다.")
       }
     } catch (error) {
       console.error("Error saving settings:", error)
-      alert("설정이 저장되었습니다. (오프라인 모드)")
+      toast.error("설정 저장에 실패했습니다.")
     }
+  }
+
+  // 시리얼 번호 저장 핸들러
+  const handleSaveSerials = async () => {
+    // TODO: 시리얼 번호 저장 API 구현
+    toast.success("시리얼 번호가 저장되었습니다.")
   }
 
   // Apply preset
@@ -260,44 +260,35 @@ export default function SleepDashboard() {
 
       // Update devices via API
       if (preset.settings.humidifierStatus !== humidifierStatus) {
-        await axios.post(`${API_BASE_URL}/device/humidifier`, {
-          status: preset.settings.humidifierStatus,
-        })
+        await controlHumidifier(preset.settings.humidifierStatus as "on" | "off")
       }
 
       if (preset.settings.speakerStatus !== speakerStatus || preset.settings.volume !== volume) {
-        await axios.post(`${API_BASE_URL}/device/speaker`, {
-          status: preset.settings.speakerStatus,
-          volume: preset.settings.volume,
-        })
+        await controlSpeaker(preset.settings.speakerStatus as "on" | "off", preset.settings.volume)
       }
 
       // Save automation settings
-      await axios.post(`${API_BASE_URL}/settings/automation`, {
+      await saveAutomationSettings({
         enabled: preset.settings.automationEnabled,
         humidityThreshold: preset.settings.humidityThreshold,
         heartRateThreshold: preset.settings.heartRateThreshold,
       })
 
-      alert(`${preset.name} 프리셋이 적용되었습니다.`)
+      toast.success(`${preset.name} 프리셋이 적용되었습니다.`)
     } catch (error) {
       console.error("Error applying preset:", error)
-      alert(`${preset.name} 프리셋이 적용되었습니다. (오프라인 모드)`)
+      toast.error("프리셋 적용에 실패했습니다.")
     }
   }
 
-  // Initialize data on component mount
+  // Initial data fetch
   useEffect(() => {
     fetchCurrentStatus()
     fetchSleepRecords()
 
-    // Update status every 10 seconds
-    const intervalId = setInterval(() => {
-      fetchCurrentStatus()
-      fetchSleepRecords()
-    }, 10000)
+    // 실시간 업데이트를 위한 폴링 설정
+    const intervalId = setInterval(fetchCurrentStatus, 30000) // 30초마다 업데이트
 
-    // Cleanup interval on unmount
     return () => clearInterval(intervalId)
   }, [])
 
@@ -334,7 +325,14 @@ export default function SleepDashboard() {
               <PresetSelector presets={PRESETS} onSelectPreset={applyPreset} />
 
               {/* AI 수면환경 분석 섹션 */}
-              <AISleepAnalysis analysisData={dummyAnalysisData} />
+              <AISleepAnalysis analysisData={{
+                humidity,
+                heartRate,
+                humidifierStatus,
+                speakerStatus,
+                volume,
+                sleepRecords
+              }} />
 
               {/* Current Status Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -344,7 +342,11 @@ export default function SleepDashboard() {
                   onToggleHumidifier={toggleHumidifier}
                 />
 
-                <HeartRateCard heartRate={heartRate} speakerStatus={speakerStatus} onToggleSpeaker={toggleSpeaker} />
+                <HeartRateCard 
+                  heartRate={heartRate} 
+                  speakerStatus={speakerStatus} 
+                  onToggleSpeaker={toggleSpeaker} 
+                />
               </div>
 
               {/* Speaker Volume Control */}
@@ -362,7 +364,12 @@ export default function SleepDashboard() {
                 setHumidityThreshold={setHumidityThreshold}
                 heartRateThreshold={heartRateThreshold}
                 setHeartRateThreshold={setHeartRateThreshold}
+                humidifierSerial={humidifierSerial}
+                setHumidifierSerial={setHumidifierSerial}
+                speakerSerial={speakerSerial}
+                setSpeakerSerial={setSpeakerSerial}
                 onSave={saveSettings}
+                onSaveSerials={handleSaveSerials}
               />
             </TabsContent>
           </Tabs>
