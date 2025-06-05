@@ -21,12 +21,7 @@ interface AutomationSettingsProps {
   setHumidityThreshold: (threshold: number) => void
   heartRateThreshold: number
   setHeartRateThreshold: (threshold: number) => void
-  humidifierSerial: string
-  setHumidifierSerial: (serial: string) => void
-  speakerSerial: string
-  setSpeakerSerial: (serial: string) => void
   onSave: () => void
-  onSaveSerials: () => void
 }
 
 export function AutomationSettings({
@@ -36,12 +31,7 @@ export function AutomationSettings({
   setHumidityThreshold,
   heartRateThreshold,
   setHeartRateThreshold,
-  humidifierSerial,
-  setHumidifierSerial,
-  speakerSerial,
-  setSpeakerSerial,
-  onSave,
-  onSaveSerials,
+  onSave
 }: AutomationSettingsProps) {
   return (
     <Card className="border-purple-200 bg-white/80 backdrop-blur-sm">
@@ -123,46 +113,6 @@ export function AutomationSettings({
               <Heart className="h-3 w-3 mr-1" />
               심박수가 이 수준을 초과하면 스피커가 활성화됩니다
             </p>
-          </div>
-        </div>
-
-        {/* 시리얼 번호 입력 섹션 */}
-        <div className="space-y-4">
-          <div className="p-4 bg-green-50 rounded-lg">
-            <label htmlFor="humidifier-serial" className="block text-sm font-medium text-green-800 mb-1">
-              가습기 시리얼 번호
-            </label>
-            <input
-              id="humidifier-serial"
-              type="text"
-              value={humidifierSerial}
-              onChange={(e) => setHumidifierSerial(e.target.value)}
-              placeholder="예: HG123456789"
-              className="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
-          </div>
-
-          <div className="p-4 bg-green-50 rounded-lg">
-            <label htmlFor="speaker-serial" className="block text-sm font-medium text-green-800 mb-1">
-              스피커 시리얼 번호
-            </label>
-            <input
-              id="speaker-serial"
-              type="text"
-              value={speakerSerial}
-              onChange={(e) => setSpeakerSerial(e.target.value)}
-              placeholder="예: SP987654321"
-              className="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
-          </div>
-
-          <div className="flex justify-end">
-            <Button
-              onClick={onSaveSerials}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              시리얼 저장
-            </Button>
           </div>
         </div>
       </CardContent>
