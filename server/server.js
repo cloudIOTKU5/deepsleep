@@ -6,10 +6,15 @@ require("dotenv").config();
 const apiRouter = require("./routes/api");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
+
+// CORS 설정
+app.use(cors({
+  origin: 'http://localhost:3000', // Next.js 클라이언트 주소
+  credentials: true
+}));
 
 // 미들웨어 설정
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
