@@ -15,9 +15,9 @@ provider:
         - logs:PutLogEvents
       Resource: "arn:aws:logs:*:*:*"
 
-# 패키지 설정 - 필요한 파일/폴더만 포함
 package:
   patterns:
+    - '!**'
     - 'server/**'
     - 'package.json'
     - 'package-lock.json'
