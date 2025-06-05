@@ -15,6 +15,7 @@ import { AutomationSettings } from "@/components/dashboard/automation-settings"
 import { DashboardFooter } from "@/components/dashboard/dashboard-footer"
 import { WelcomeBanner } from "@/components/dashboard/welcome-banner"
 import { PresetSelector } from "@/components/dashboard/preset-selector"
+import { AISleepAnalysis } from "@/components/dashboard/ai-sleep-analysis"
 
 // API URL
 const API_BASE_URL = "/api"
@@ -67,6 +68,35 @@ const PRESETS = [
     },
   },
 ]
+
+// 더미 AI 수면 환경 분석 데이터
+const dummyAnalysisData = {
+  humidity: 38, 
+  heartRate: 72,
+  humidifierStatus: "off",
+  speakerStatus: "on",
+  volume: 55,
+  sleepRecords: [
+    {
+      date: "2025-06-02",
+      averageHumidity: 42,
+      averageHeartRate: 68,
+      sleepQualityScore: 58,
+    },
+    {
+      date: "2025-06-03",
+      averageHumidity: 46,
+      averageHeartRate: 67,
+      sleepQualityScore: 61,
+    },
+    {
+      date: "2025-06-04",
+      averageHumidity: 44,
+      averageHeartRate: 66,
+      sleepQualityScore: 57,
+    },
+  ],
+}
 
 // 더미 수면 기록 데이터 (실제로는 API에서 가져옴)
 const DUMMY_SLEEP_RECORDS = [
@@ -302,6 +332,9 @@ export default function SleepDashboard() {
 
               {/* Preset Selector */}
               <PresetSelector presets={PRESETS} onSelectPreset={applyPreset} />
+
+              {/* AI 수면환경 분석 섹션 */}
+              <AISleepAnalysis analysisData={dummyAnalysisData} />
 
               {/* Current Status Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
