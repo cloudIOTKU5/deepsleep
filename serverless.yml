@@ -4,7 +4,7 @@ provider:
   name: aws
   runtime: nodejs18.x
   region: ap-northeast-2
-  stage: ${opt:stage, 'dev'}
+  stage: ${opt:stage, 'api'}
   environment:
     NODE_ENV: ${self:provider.stage}
   iamRoleStatements:
@@ -15,19 +15,21 @@ provider:
         - logs:PutLogEvents
       Resource: "arn:aws:logs:*:*:*"
 
-# 패키지 설정 - 배포에서 제외할 파일/폴더 지정
+# 패키지 설정 - 필요한 파일/폴더만 포함
 package:
   patterns:
-    - '!client/**'
-    - '!raspberry/**'
-    - '!mqtt/**'
-    - '!README.md'
-    - '!ARCHITECTURE.md'
-    - '!docker-compose.yml'
-    - '!.git/**'
-    - '!.gitignore'
-    - '!*.md'
+    - 'server/**'
+    - 'package.json'
+    - 'package-lock.json'
+    - 'pnpm-lock.yaml'
+    - '.env'
+    - 'node_modules/**'
     - '!node_modules/.cache/**'
+    - '!node_modules/**/test/**'
+    - '!node_modules/**/tests/**'
+    - '!node_modules/**/*.md'
+    - '!node_modules/**/README*'
+    - '!node_modules/**/CHANGELOG*'
   individually: false
 
 functions:
