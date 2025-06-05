@@ -1,0 +1,39 @@
+service: deepsleep-api
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ap-northeast-2
+  stage: ${opt:stage, 'dev'}
+  environment:
+    NODE_ENV: ${self:provider.stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:PutLogEvents
+      Resource: "arn:aws:logs:*:*:*"
+
+functions:
+  api:
+    handler: server/lambda.handler
+    events:
+      - http:
+          path: /{proxy+}
+          method: ANY
+          cors: true
+      - http:
+          path: /
+          method: ANY
+          cors: true
+    timeout: 30
+    memorySize: 512
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 3000
+    host: 0.0.0.0 

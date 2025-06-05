@@ -6,7 +6,11 @@
   "scripts": {
     "start": "node server/server.js",
     "dev": "nodemon server/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "serverless:dev": "serverless offline start",
+    "serverless:deploy": "serverless deploy",
+    "serverless:remove": "serverless remove",
+    "serverless:logs": "serverless logs -f api -t"
   },
   "author": "Team5",
   "license": "ISC",
@@ -17,9 +21,12 @@
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "mongoose": "^7.5.2",
-    "mqtt": "^5.0.5"
+    "mqtt": "^5.0.5",
+    "serverless-http": "^3.4.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "serverless": "^3.38.0",
+    "serverless-offline": "^13.3.0"
   }
 }
