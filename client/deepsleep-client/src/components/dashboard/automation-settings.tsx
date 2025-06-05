@@ -1,7 +1,15 @@
 "use client"
 
+import { useState } from "react"
 import { Droplet, Heart, Settings } from "lucide-react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { Slider } from "@/components/ui/slider"
 import { Button } from "@/components/ui/button"
@@ -13,7 +21,12 @@ interface AutomationSettingsProps {
   setHumidityThreshold: (threshold: number) => void
   heartRateThreshold: number
   setHeartRateThreshold: (threshold: number) => void
+  humidifierSerial: string
+  setHumidifierSerial: (serial: string) => void
+  speakerSerial: string
+  setSpeakerSerial: (serial: string) => void
   onSave: () => void
+  onSaveSerials: () => void
 }
 
 export function AutomationSettings({
@@ -23,7 +36,12 @@ export function AutomationSettings({
   setHumidityThreshold,
   heartRateThreshold,
   setHeartRateThreshold,
+  humidifierSerial,
+  setHumidifierSerial,
+  speakerSerial,
+  setSpeakerSerial,
   onSave,
+  onSaveSerials,
 }: AutomationSettingsProps) {
   return (
     <Card className="border-purple-200 bg-white/80 backdrop-blur-sm">
@@ -34,7 +52,9 @@ export function AutomationSettings({
         </CardTitle>
         <CardDescription>장치가 자동으로 활성화되는 조건을 설정하세요</CardDescription>
       </CardHeader>
+
       <CardContent className="space-y-6">
+        {/* 자동화 활성화 토글 */}
         <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
           <div>
             <h3 className="font-medium text-purple-800">자동화 활성화</h3>
@@ -47,7 +67,9 @@ export function AutomationSettings({
           />
         </div>
 
+        {/* 습도 및 심박수 임계값 슬라이더 */}
         <div className="space-y-6">
+          {/* 습도 임계값 섹션 */}
           <div className="p-4 bg-blue-50 rounded-lg">
             <div className="flex justify-between mb-2">
               <label htmlFor="humidity-threshold" className="text-sm font-medium text-blue-800">
@@ -75,6 +97,7 @@ export function AutomationSettings({
             </p>
           </div>
 
+          {/* 심박수 임계값 섹션 */}
           <div className="p-4 bg-pink-50 rounded-lg">
             <div className="flex justify-between mb-2">
               <label htmlFor="heartrate-threshold" className="text-sm font-medium text-pink-800">
@@ -102,11 +125,52 @@ export function AutomationSettings({
             </p>
           </div>
         </div>
+
+        {/* 시리얼 번호 입력 섹션 */}
+        <div className="space-y-4">
+          <div className="p-4 bg-green-50 rounded-lg">
+            <label htmlFor="humidifier-serial" className="block text-sm font-medium text-green-800 mb-1">
+              가습기 시리얼 번호
+            </label>
+            <input
+              id="humidifier-serial"
+              type="text"
+              value={humidifierSerial}
+              onChange={(e) => setHumidifierSerial(e.target.value)}
+              placeholder="예: HG123456789"
+              className="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            />
+          </div>
+
+          <div className="p-4 bg-green-50 rounded-lg">
+            <label htmlFor="speaker-serial" className="block text-sm font-medium text-green-800 mb-1">
+              스피커 시리얼 번호
+            </label>
+            <input
+              id="speaker-serial"
+              type="text"
+              value={speakerSerial}
+              onChange={(e) => setSpeakerSerial(e.target.value)}
+              placeholder="예: SP987654321"
+              className="w-full px-3 py-2 border border-green-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            />
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={onSaveSerials}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              시리얼 저장
+            </Button>
+          </div>
+        </div>
       </CardContent>
-      <CardFooter className="bg-purple-50/50">
+
+      <CardFooter className="bg-purple-50/50 flex justify-end">
         <Button
           onClick={onSave}
-          className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
+          className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 text-white"
         >
           설정 저장
         </Button>
