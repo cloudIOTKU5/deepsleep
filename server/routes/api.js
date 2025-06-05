@@ -130,40 +130,61 @@ router.post("/settings/automation", (req, res) => {
 });
 
 // AI 수면환경 분석 API
-router.post('/analyze-sleep', async (req, res) => {
+router.post('/sleep-analysis/insights', async (req, res) => {
   try {
-    const data = {
-      currentEnvironment: {
-        humidity: req.body.humidity,
-        heartRate: req.body.heartRate,
-        humidifierStatus: req.body.humidifierStatus,
-        speakerStatus: req.body.speakerStatus,
-        volume: req.body.volume
-      },
-      sleepHistory: req.body.sleepRecords || []
-    };
+    console.log('[INSIGHTS] 수면 인사이트 요청 수신:', req.body);
 
-    // 각 분석 결과 병렬로 가져오기
-    const [insights, prediction, trends] = await Promise.all([
-      analyzeSleepInsights(data),
-      predictSleepQuality(data),
-      analyzeSleepTrends(data)
-    ]);
+    const result = await analyzeSleepInsights(req.body);
 
-    res.json({
-      success: true,
-      data: {
-        insights,
-        prediction,
-        trends
-      }
-    });
+    console.log('[INSIGHTS] 분석 완료');
+    res.json({ success: true, data: result });
   } catch (error) {
-    console.error('AI 분석 실패:', error);
+    console.error('[INSIGHTS] 분석 실패:', error);
+
     res.status(500).json({
       success: false,
-      message: 'AI 분석 중 오류가 발생했습니다.',
-      error: error.message
+      message: '수면 인사이트 분석 중 오류가 발생했습니다.',
+      error: error instanceof Error ? error.message : '알 수 없는 오류입니다.'
+    });
+  }
+});
+
+// 수면 품질 예측
+router.post('/sleep-analysis/prediction', async (req, res) => {
+  try {
+    console.log('[PREDICTION] 수면 품질 예측 요청 수신:', req.body);
+
+    const result = await predictSleepQuality(req.body);
+
+    console.log('[PREDICTION] 예측 완료');
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('[PREDICTION] 예측 실패:', error);
+
+    res.status(500).json({
+      success: false,
+      message: '수면 품질 예측 중 오류가 발생했습니다.',
+      error: error instanceof Error ? error.message : '알 수 없는 오류입니다.'
+    });
+  }
+});
+
+// 수면 트렌드 분석
+router.post('/sleep-analysis/trends', async (req, res) => {
+  try {
+    console.log('[TRENDS] 수면 트렌드 요청 수신:', req.body);
+
+    const result = await analyzeSleepTrends(req.body);
+
+    console.log('[TRENDS] 분석 완료');
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('[TRENDS] 분석 실패:', error);
+
+    res.status(500).json({
+      success: false,
+      message: '수면 트렌드 분석 중 오류가 발생했습니다.',
+      error: error instanceof Error ? error.message : '알 수 없는 오류입니다.'
     });
   }
 });
