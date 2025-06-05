@@ -2,6 +2,9 @@
 
 수면 중 습도와 심박수 데이터에 따라 가습기 및 스피커를 자동으로 조절하는 온프레미스 스마트 헬스케어 서비스입니다.
 
+![image](https://github.com/user-attachments/assets/a01fc9bb-e900-4306-99c4-beb729dc77c5)
+
+
 ## 프로젝트 구조
 
 ```
