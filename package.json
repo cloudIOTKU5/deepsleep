@@ -15,10 +15,11 @@
   "author": "Team5",
   "license": "ISC",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "aws-sdk": "^2.1692.0",
     "axios": "^1.6.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
+    "dotenv": "^16.5.0",
     "express": "^4.18.2",
     "mongoose": "^7.5.2",
     "mqtt": "^5.0.5",
