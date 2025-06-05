@@ -15,6 +15,21 @@ provider:
         - logs:PutLogEvents
       Resource: "arn:aws:logs:*:*:*"
 
+# 패키지 설정 - 배포에서 제외할 파일/폴더 지정
+package:
+  patterns:
+    - '!client/**'
+    - '!raspberry/**'
+    - '!mqtt/**'
+    - '!README.md'
+    - '!ARCHITECTURE.md'
+    - '!docker-compose.yml'
+    - '!.git/**'
+    - '!.gitignore'
+    - '!*.md'
+    - '!node_modules/.cache/**'
+  individually: false
+
 functions:
   api:
     handler: server/lambda.handler
