@@ -9,10 +9,29 @@ class FitbitService {
     this.clientId = process.env.FITBIT_CLIENT_ID;
     this.clientSecret = process.env.FITBIT_CLIENT_SECRET;
     this.redirectUri = process.env.FITBIT_REDIRECT_URI || 'http://localhost:4000/api/fitbit/callback';
-    this.accessToken = null;
-    this.refreshToken = null;
-    this.userId = null;
-    this.tokenExpiresAt = null;
+    
+    // 환경 변수에서 토큰 초기화
+    this.accessToken = process.env.FITBIT_ACCESS_TOKEN;
+    this.refreshToken = process.env.FITBIT_REFRESH_TOKEN;
+    this.userId = process.env.FITBIT_USER_ID;
+    this.tokenExpiresAt = null;  // 처음에는 토큰 갱신이 필요하도록 설정
+
+    // 서버 시작 시 토큰 유효성 검사
+    this.initializeTokens();
+  }
+
+  async initializeTokens() {
+    try {
+      if (this.accessToken && this.refreshToken) {
+        // 토큰이 있으면 갱신 시도
+        await this.refreshAccessToken();
+        console.log('Fitbit 토큰 초기화 성공');
+      } else {
+        console.log('Fitbit 토큰이 설정되어 있지 않습니다. 환경 변수를 확인해주세요.');
+      }
+    } catch (error) {
+      console.error('Fitbit 토큰 초기화 실패:', error.message);
+    }
   }
 
   updateTokenData(tokenData) {
@@ -24,7 +43,7 @@ class FitbitService {
 
   async refreshAccessToken() {
     if (!this.refreshToken) {
-      throw new Error('Refresh token이 없습니다. 다시 인증해주세요.');
+      throw new Error('Refresh token이 없습니다. 환경 변수를 확인해주세요.');
     }
 
     try {
@@ -47,6 +66,10 @@ class FitbitService {
       return response.data;
     } catch (error) {
       console.error('토큰 갱신 실패:', error.response?.data || error.message);
+      // 토큰 갱신 실패 시 토큰 초기화
+      this.accessToken = null;
+      this.refreshToken = null;
+      this.tokenExpiresAt = null;
       throw error;
     }
   }
@@ -54,7 +77,18 @@ class FitbitService {
   // 토큰 유효성 검사 및 필요시 갱신
   async ensureValidToken() {
     if (!this.accessToken || !this.tokenExpiresAt) {
-      throw new Error('인증이 필요합니다.');
+      // 토큰이 없으면 환경 변수에서 다시 읽어오기 시도
+      this.accessToken = process.env.FITBIT_ACCESS_TOKEN;
+      this.refreshToken = process.env.FITBIT_REFRESH_TOKEN;
+      this.userId = process.env.FITBIT_USER_ID;
+      
+      if (!this.accessToken || !this.refreshToken) {
+        throw new Error('Fitbit 토큰이 설정되어 있지 않습니다. 환경 변수를 확인해주세요.');
+      }
+      
+      // 새로 읽어온 토큰으로 갱신 시도
+      await this.refreshAccessToken();
+      return;
     }
 
     // 토큰 만료 10분 전에 갱신
