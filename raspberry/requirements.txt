@@ -1,5 +1,7 @@
-paho-mqtt==1.6.1
+AWSIoTPythonSDK==1.5.2
 requests>=2.31.0
 python-dotenv==1.0.0
 urllib3>=2.2.2
+boto3>=1.34.0
+Adafruit-DHT==1.4.0
 # RPi.GPIO==0.7.1 # 라즈베리파이 사용시 사용
