@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
-// AWS IoT Core API 사용 (Lambda에서 더 안정적)
 const { controlHumidifier, controlSpeaker, sendAutomationSettings, getDeviceStatus } = require("../mqtt-api");
 const settings = require("../automation/setting");
 const repository = require("../data/repository");
 const automationController = require("../automation/controller");
 const { fetchFitbitHeartRate } = require("../data/fitbit");
 const { analyzeSleepInsights, predictSleepQuality, analyzeSleepTrends } = require('../services/gemini-service');
+const { checkDatabaseStatus } = require("../data/rds-config");
 
 // 현재 수면 데이터 상태 조회
 router.get("/sleep/status", async (req, res) => {
@@ -43,8 +43,103 @@ router.get("/sleep/status", async (req, res) => {
 });
 
 // 수면 데이터 기록 가져오기
-router.get("/sleep/records", (req, res) => {
-  res.json(repository.getSleepDataRecords());
+router.get("/sleep/records", async (req, res) => {
+  try {
+    const { limit, startDate, endDate } = req.query;
+    const options = {};
+
+    if (limit) options.limit = parseInt(limit);
+    if (startDate) options.startDate = new Date(startDate);
+    if (endDate) options.endDate = new Date(endDate);
+
+    // DocumentDB에서 데이터 가져오기 시도
+    const records = await repository.getSleepDataRecordsFromDB(options);
+
+    // DocumentDB에 데이터가 없으면 메모리 데이터 사용
+    if (records.length === 0) {
+      return res.json(repository.getSleepDataRecords());
+    }
+
+    res.json(records);
+  } catch (error) {
+    console.error('수면 데이터 조회 오류:', error);
+    // 폴백으로 메모리 데이터 사용
+    res.json(repository.getSleepDataRecords());
+  }
+});
+
+// 수면 통계 데이터 가져오기
+router.get("/sleep/statistics", async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    const options = {};
+
+    if (startDate) options.startDate = new Date(startDate);
+    if (endDate) options.endDate = new Date(endDate);
+
+    const statistics = await repository.getSleepStatistics(options);
+    res.json(statistics);
+  } catch (error) {
+    console.error('수면 통계 조회 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: "수면 통계 조회 중 오류가 발생했습니다."
+    });
+  }
+});
+
+// 일별 수면 통계 데이터 가져오기
+router.get("/sleep/daily-statistics", async (req, res) => {
+  try {
+    const { limit, startDate, endDate } = req.query;
+    const options = {};
+
+    if (limit) options.limit = parseInt(limit);
+    if (startDate) options.startDate = new Date(startDate);
+    if (endDate) options.endDate = new Date(endDate);
+
+    const dailyStatistics = await repository.getDailySleepStatistics(options);
+    res.json(dailyStatistics);
+  } catch (error) {
+    console.error('일별 수면 통계 조회 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: "일별 수면 통계 조회 중 오류가 발생했습니다."
+    });
+  }
+});
+
+// 센서 데이터 기록 가져오기
+router.get("/sensor/records", async (req, res) => {
+  try {
+    const { limit, startDate, endDate } = req.query;
+    const options = {};
+
+    if (limit) options.limit = parseInt(limit);
+    if (startDate) options.startDate = new Date(startDate);
+    if (endDate) options.endDate = new Date(endDate);
+
+    const records = await repository.getSensorDataRecordsFromDB(options);
+    res.json(records);
+  } catch (error) {
+    console.error('센서 데이터 조회 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: "센서 데이터 조회 중 오류가 발생했습니다."
+    });
+  }
+});
+
+// 장치 상태 조회
+router.get("/device/status", async (req, res) => {
+  try {
+    const deviceStatus = await repository.getDeviceStatusFromDB();
+    res.json(deviceStatus);
+  } catch (error) {
+    console.error('장치 상태 조회 오류:', error);
+    // 폴백으로 메모리 데이터 사용
+    res.json(repository.getCurrentDeviceStatus());
+  }
 });
 
 // 가습기 제어
@@ -221,6 +316,23 @@ router.post('/sleep-analysis/trends', async (req, res) => {
       success: false,
       message: '수면 트렌드 분석 중 오류가 발생했습니다.',
       error: error instanceof Error ? error.message : '알 수 없는 오류입니다.'
+    });
+  }
+});
+
+// 데이터베이스 상태 확인 (새로운 엔드포인트)
+router.get("/database/status", async (req, res) => {
+  try {
+    // 콘솔에 상태 출력
+    const status = await checkDatabaseStatus();
+
+    res.json(status);
+  } catch (error) {
+    console.error('데이터베이스 상태 확인 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: "데이터베이스 상태 확인 중 오류가 발생했습니다.",
+      details: error.message
     });
   }
 });
