@@ -254,6 +254,14 @@ def main():
             print("AWS IoT Core 연결 해제")
         except:
             pass
+
+        # 센서 및 GPIO 정리
+        try:
+            dht11_sensor.cleanup()
+            print("DHT11 센서 정리 완료")
+        except:
+            pass
+
         gpio_handler.cleanup()
 
 
