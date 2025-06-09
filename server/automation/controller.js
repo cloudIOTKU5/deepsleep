@@ -1,6 +1,6 @@
 const settings = require("./setting");
 const repository = require("../data/repository");
-const { controlDevice } = require("../mqtt");
+const { controlHumidifier, controlSpeaker } = require("../mqtt-api");
 
 /**
  * 자동화 제어 로직 처리
@@ -17,20 +17,20 @@ async function processAutomation() {
 
   // 습도에 따른 가습기 제어
   if (humidity < automationSettings.humidityThreshold) {
-    controlDevice("humidifier", "on");
+    controlHumidifier("on");
     repository.updateDeviceStatus({ humidifier: "on" });
   } else {
-    controlDevice("humidifier", "off");
+    controlHumidifier("off");
     repository.updateDeviceStatus({ humidifier: "off" });
   }
 
   // 심박수에 따른 스피커 제어
   if (heartRate > automationSettings.heartRateThreshold) {
     const volume = repository.getCurrentDeviceStatus().volume;
-    controlDevice("speaker", "on", { volume });
+    controlSpeaker("on", volume);
     repository.updateDeviceStatus({ speaker: "on", volume });
   } else {
-    controlDevice("speaker", "off");
+    controlSpeaker("off");
     repository.updateDeviceStatus({ speaker: "off" });
   }
 }

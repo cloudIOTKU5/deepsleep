@@ -14,6 +14,14 @@ provider:
         - logs:CreateLogStream
         - logs:PutLogEvents
       Resource: "arn:aws:logs:*:*:*"
+    # AWS IoT Core 권한 추가
+    - Effect: Allow
+      Action:
+        - iot:Connect
+        - iot:Publish
+        - iot:Subscribe
+        - iot:Receive
+      Resource: "*"
 
 package:
   patterns:
@@ -46,6 +54,14 @@ functions:
           cors: true
     timeout: 30
     memorySize: 512
+
+  # IoT 메시지 처리 Lambda 함수
+  iotHandler:
+    handler: server/iot-handler.handler
+    timeout: 30
+    memorySize: 256
+    environment:
+      STAGE: ${self:provider.stage}
 
 plugins:
   - serverless-offline

@@ -1,33 +1,45 @@
 const express = require("express");
 const router = express.Router();
-const { mqttClient } = require("../mqtt");
+// AWS IoT Core API 사용 (Lambda에서 더 안정적)
+const { controlHumidifier, controlSpeaker, sendAutomationSettings, getDeviceStatus } = require("../mqtt-api");
 const settings = require("../automation/setting");
 const repository = require("../data/repository");
 const automationController = require("../automation/controller");
 const { fetchFitbitHeartRate } = require("../data/fitbit");
 const { analyzeSleepInsights, predictSleepQuality, analyzeSleepTrends } = require('../services/gemini-service');
 
-// MQTT 메시지 처리 설정
-mqttClient.on("message", async (topic, message) => {
-  if (topic === "sensors/sleep/humidity") {
-    const humidity = parseInt(message.toString());
-    const heartRate = await fetchFitbitHeartRate();
-    repository.updateSensorData({ humidity, heartRate });
-    automationController.processAutomation();
-  }
-});
-
 // 현재 수면 데이터 상태 조회
-router.get("/sleep/status", (req, res) => {
-  const currentSensorData = repository.getCurrentSensorData();
-  const currentDeviceStatus = repository.getCurrentDeviceStatus();
-  res.json({
-    humidity: currentSensorData.humidity,
-    heartRate: currentSensorData.heartRate,
-    humidifierStatus: currentDeviceStatus.humidifier,
-    speakerStatus: currentDeviceStatus.speaker,
-    volume: currentDeviceStatus.volume,
-  });
+router.get("/sleep/status", async (req, res) => {
+  try {
+    const currentSensorData = repository.getCurrentSensorData();
+
+    // IoT Core에서 디바이스 상태 가져오기
+    const deviceStatusResult = await getDeviceStatus();
+    const currentDeviceStatus = deviceStatusResult.success
+      ? deviceStatusResult.data
+      : repository.getCurrentDeviceStatus();
+
+    res.json({
+      humidity: currentSensorData.humidity,
+      heartRate: currentSensorData.heartRate,
+      humidifierStatus: currentDeviceStatus.humidifier,
+      speakerStatus: currentDeviceStatus.speaker,
+      volume: currentDeviceStatus.volume,
+    });
+  } catch (error) {
+    console.error('수면 상태 조회 오류:', error);
+    // 폴백으로 로컬 데이터 사용
+    const currentSensorData = repository.getCurrentSensorData();
+    const currentDeviceStatus = repository.getCurrentDeviceStatus();
+
+    res.json({
+      humidity: currentSensorData.humidity,
+      heartRate: currentSensorData.heartRate,
+      humidifierStatus: currentDeviceStatus.humidifier,
+      speakerStatus: currentDeviceStatus.speaker,
+      volume: currentDeviceStatus.volume,
+    });
+  }
 });
 
 // 수면 데이터 기록 가져오기
@@ -36,27 +48,35 @@ router.get("/sleep/records", (req, res) => {
 });
 
 // 가습기 제어
-router.post("/device/humidifier", (req, res) => {
+router.post("/device/humidifier", async (req, res) => {
   const { status } = req.body;
 
   if (status !== "on" && status !== "off") {
     return res.status(400).json({ error: "상태는 on 또는 off여야 합니다." });
   }
 
-  // MQTT를 통해 라즈베리 파이에 명령 전송
-  mqttClient.publish("control/humidifier", JSON.stringify({ status }));
+  try {
+    // AWS IoT Core를 통해 가습기 제어
+    const result = await controlHumidifier(status);
 
-  // 상태 업데이트
-  repository.updateDeviceStatus({ humidifier: status });
+    // 로컬 상태도 업데이트
+    repository.updateDeviceStatus({ humidifier: status });
 
-  res.json({
-    success: true,
-    message: `가습기가 ${status === "on" ? "켜졌습니다" : "꺼졌습니다"}`,
-  });
+    res.json({
+      success: true,
+      message: `가습기가 ${status === "on" ? "켜졌습니다" : "꺼졌습니다"}`,
+    });
+  } catch (error) {
+    console.error('가습기 제어 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: "가습기 제어 중 오류가 발생했습니다."
+    });
+  }
 });
 
 // 스피커 제어
-router.post("/device/speaker", (req, res) => {
+router.post("/device/speaker", async (req, res) => {
   const { status, volume } = req.body;
 
   if (status !== "on" && status !== "off") {
@@ -67,23 +87,31 @@ router.post("/device/speaker", (req, res) => {
     return res.status(400).json({ error: "볼륨은 0에서 100 사이여야 합니다." });
   }
 
-  // MQTT를 통해 라즈베리 파이에 명령 전송
-  mqttClient.publish("control/speaker", JSON.stringify({ status, volume }));
+  try {
+    // AWS IoT Core를 통해 스피커 제어
+    const result = await controlSpeaker(status, volume);
 
-  // 상태 업데이트
-  repository.updateDeviceStatus({ speaker: status, volume });
+    // 로컬 상태도 업데이트
+    repository.updateDeviceStatus({ speaker: status, volume });
 
-  res.json({
-    success: true,
-    message:
-      status === "on"
-        ? `스피커가 켜졌습니다. 볼륨: ${volume}`
-        : "스피커가 꺼졌습니다",
-  });
+    res.json({
+      success: true,
+      message:
+        status === "on"
+          ? `스피커가 켜졌습니다. 볼륨: ${volume}`
+          : "스피커가 꺼졌습니다",
+    });
+  } catch (error) {
+    console.error('스피커 제어 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: "스피커 제어 중 오류가 발생했습니다."
+    });
+  }
 });
 
 // 자동화 설정
-router.post("/settings/automation", (req, res) => {
+router.post("/settings/automation", async (req, res) => {
   const { enabled, humidityThreshold, heartRateThreshold } = req.body;
 
   console.log("자동화 설정 요청:", {
@@ -111,22 +139,30 @@ router.post("/settings/automation", (req, res) => {
       .json({ error: "심박수 임계값은 40에서 200 사이여야 합니다." });
   }
 
-  // 설정 업데이트
-  settings.updateAutomationSettings({
-    enabled,
-    humidityThreshold,
-    heartRateThreshold,
-  });
+  try {
+    // 로컬 설정 업데이트
+    settings.updateAutomationSettings({
+      enabled,
+      humidityThreshold,
+      heartRateThreshold,
+    });
 
-  // MQTT를 통해 자동화 상태만 라즈베리 파이에 설정 전달
-  mqttClient.publish("settings/automation", JSON.stringify({ enabled }));
+    // AWS IoT Core를 통해 자동화 상태를 디바이스에 전달
+    await sendAutomationSettings(enabled);
 
-  res.json({
-    success: true,
-    message: enabled
-      ? "자동화가 활성화되었습니다."
-      : "자동화가 비활성화되었습니다.",
-  });
+    res.json({
+      success: true,
+      message: enabled
+        ? "자동화가 활성화되었습니다."
+        : "자동화가 비활성화되었습니다.",
+    });
+  } catch (error) {
+    console.error('자동화 설정 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: "자동화 설정 중 오류가 발생했습니다."
+    });
+  }
 });
 
 // AI 수면환경 분석 API

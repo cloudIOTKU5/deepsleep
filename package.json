@@ -16,6 +16,8 @@
   "license": "ISC",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "aws-crt": "^1.27.1",
+    "aws-iot-device-sdk-v2": "^1.21.5",
     "aws-sdk": "^2.1692.0",
     "axios": "^1.6.0",
     "cors": "^2.8.5",

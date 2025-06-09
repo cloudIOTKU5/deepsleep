@@ -62,3 +62,12 @@ mqtt/log/
 
 # serverless
 .serverless/
+
+# certificates
+**/*.pem
+**/*.crt
+**/*.key
+**/*.csr
+**/*.p12
+**/*.pfx
+**/*.p12
