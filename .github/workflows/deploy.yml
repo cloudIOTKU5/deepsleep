@@ -27,7 +27,9 @@ jobs:
       - name: Create .env file
         run: |
           echo "Creating .env file from GitHub secrets..."
-          echo "${{ secrets.ENV_CONTENT }}" > .env
+          cat << EOF > .env
+          AWS_IOT_ENDPOINT=${{ secrets.AWS_IOT_ENDPOINT }}
+          EOF
           echo ".env 파일 생성"
 
       - name: Configure AWS credentials
