@@ -29,6 +29,9 @@ jobs:
           echo "Creating .env file from GitHub secrets..."
           cat << EOF > .env
           AWS_IOT_ENDPOINT=${{ secrets.AWS_IOT_ENDPOINT }}
+          RDS_HOST=${{ secrets.RDS_HOST }}
+          RDS_USER=${{ secrets.RDS_USER }}
+          RDS_PASSWORD=${{ secrets.RDS_PASSWORD }}
           EOF
           echo ".env 파일 생성"
 
