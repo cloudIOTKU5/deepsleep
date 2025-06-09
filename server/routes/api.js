@@ -7,6 +7,7 @@ const automationController = require("../automation/controller");
 const { fetchFitbitHeartRate } = require("../data/fitbit");
 const { analyzeSleepInsights, predictSleepQuality, analyzeSleepTrends } = require('../services/gemini-service');
 const { checkDatabaseStatus } = require("../data/rds-config");
+const { fitbitService } = require("../data/fitbit");
 
 // 현재 수면 데이터 상태 조회
 router.get("/sleep/status", async (req, res) => {
@@ -332,6 +333,55 @@ router.get("/database/status", async (req, res) => {
       success: false,
       error: "데이터베이스 상태 확인 중 오류가 발생했습니다.",
       details: error.message
+    });
+  }
+});
+
+// Fitbit 토큰 설정 (테스트용)
+router.post("/test/fitbit-token", (req, res) => {
+  try {
+    const { accessToken, refreshToken, userId, expiresIn } = req.body;
+    
+    if (!accessToken || !refreshToken || !userId || !expiresIn) {
+      return res.status(400).json({
+        success: false,
+        message: "필수 파라미터가 누락되었습니다.",
+      });
+    }
+
+    fitbitService.setTokens(accessToken, refreshToken, userId, expiresIn);
+    
+    res.json({
+      success: true,
+      message: "Fitbit 토큰이 설정되었습니다.",
+    });
+  } catch (error) {
+    console.error("Fitbit 토큰 설정 실패:", error);
+    res.status(500).json({
+      success: false,
+      message: "토큰 설정 중 오류가 발생했습니다.",
+      error: error.message,
+    });
+  }
+});
+
+// Fitbit 심박수 데이터 테스트
+router.get("/test/heart-rate", async (req, res) => {
+  try {
+    const heartRate = await fitbitService.fetchHeartRate();
+    res.json({
+      success: true,
+      data: {
+        heartRate,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error("심박수 데이터 조회 실패:", error);
+    res.status(500).json({
+      success: false,
+      message: "심박수 데이터 조회 중 오류가 발생했습니다.",
+      error: error.message
     });
   }
 });
