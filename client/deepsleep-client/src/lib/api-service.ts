@@ -3,6 +3,7 @@ import { API_ENDPOINTS } from './api-config';
 
 // axios 기본 설정
 axios.defaults.withCredentials = true;
+axios.defaults.headers.common['Content-Type'] = 'application/json';
 
 // 수면 환경 상태 조회
 export const getSleepStatus = async () => {
@@ -29,8 +30,14 @@ export const getSleepRecords = async () => {
 // 가습기 제어
 export const controlHumidifier = async (status: 'on' | 'off') => {
   try {
-    const response = await axios.post(API_ENDPOINTS.HUMIDIFIER_CONTROL, { status });
-    return response.data;
+    const response = await fetch(API_ENDPOINTS.HUMIDIFIER_CONTROL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status }),
+    });
+    return response.json();
   } catch (error) {
     console.error('가습기 제어 실패:', error);
     throw error;
@@ -40,8 +47,14 @@ export const controlHumidifier = async (status: 'on' | 'off') => {
 // 스피커 제어
 export const controlSpeaker = async (status: 'on' | 'off', volume?: number) => {
   try {
-    const response = await axios.post(API_ENDPOINTS.SPEAKER_CONTROL, { status, volume });
-    return response.data;
+    const response = await fetch(API_ENDPOINTS.SPEAKER_CONTROL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status, volume }),
+    });
+    return response.json();
   } catch (error) {
     console.error('스피커 제어 실패:', error);
     throw error;
@@ -57,8 +70,14 @@ export interface AutomationSettings {
 
 export const saveAutomationSettings = async (settings: AutomationSettings) => {
   try {
-    const response = await axios.post(API_ENDPOINTS.AUTOMATION_SETTINGS, settings);
-    return response.data;
+    const response = await fetch(API_ENDPOINTS.AUTOMATION_SETTINGS, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(settings),
+    });
+    return response.json();
   } catch (error) {
     console.error('자동화 설정 저장 실패:', error);
     throw error;
@@ -70,8 +89,14 @@ export const sleepAnalysisApi = {
   // 인사이트 조회
   getInsights: async (data: any) => {
     try {
-      const response = await axios.post(API_ENDPOINTS.SLEEP_ANALYSIS.INSIGHTS, data);
-      return response.data;
+      const response = await fetch(API_ENDPOINTS.SLEEP_ANALYSIS.INSIGHTS, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      return response.json();
     } catch (error) {
       console.error('수면 인사이트 조회 실패:', error);
       throw error;
@@ -81,8 +106,14 @@ export const sleepAnalysisApi = {
   // 예측 조회
   getPrediction: async (data: any) => {
     try {
-      const response = await axios.post(API_ENDPOINTS.SLEEP_ANALYSIS.PREDICTION, data);
-      return response.data;
+      const response = await fetch(API_ENDPOINTS.SLEEP_ANALYSIS.PREDICTION, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      return response.json();
     } catch (error) {
       console.error('수면 예측 조회 실패:', error);
       throw error;
@@ -92,8 +123,14 @@ export const sleepAnalysisApi = {
   // 트렌드 조회
   getTrends: async (data: any) => {
     try {
-      const response = await axios.post(API_ENDPOINTS.SLEEP_ANALYSIS.TRENDS, data);
-      return response.data;
+      const response = await fetch(API_ENDPOINTS.SLEEP_ANALYSIS.TRENDS, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      return response.json();
     } catch (error) {
       console.error('수면 트렌드 조회 실패:', error);
       throw error;
