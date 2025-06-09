@@ -60,14 +60,12 @@ export function AISleepAnalysis({ analysisData }: AISleepAnalysisProps) {
 
   // API 요청 데이터 생성
   const createRequest = (): SleepAnalysisRequest => ({
-    currentEnvironment: {
-      humidity: analysisData.humidity,
-      heartRate: analysisData.heartRate,
-      humidifierStatus: analysisData.humidifierStatus,
-      speakerStatus: analysisData.speakerStatus,
-      volume: analysisData.volume,
-    },
-    sleepHistory: analysisData.sleepRecords.slice(0, 7), // 최근 7일
+    humidity: analysisData.humidity,
+    heartRate: analysisData.heartRate,
+    humidifierStatus: analysisData.humidifierStatus,
+    speakerStatus: analysisData.speakerStatus,
+    volume: analysisData.volume,
+    sleepHistory: analysisData.sleepRecords.slice(0, 7),
   })
 
   // 인사이트 가져오기
@@ -269,7 +267,7 @@ export function AISleepAnalysis({ analysisData }: AISleepAnalysisProps) {
               </div>
             ) : (
               <div className="space-y-3">
-                {insights.map((insight) => (
+                {insights?.map((insight) => (
                   <div
                     key={insight.id}
                     className={`p-4 border-l-4 ${getInsightBorderColor(insight.type)} bg-white dark:bg-gray-800 rounded-r-lg shadow-sm`}
@@ -296,7 +294,7 @@ export function AISleepAnalysis({ analysisData }: AISleepAnalysisProps) {
                   </div>
                 ))}
 
-                {insights.length === 0 && !isLoading.insights && (
+                {insights?.length === 0 && !isLoading.insights && (
                   <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                     <Brain className="h-8 w-8 mx-auto mb-2 opacity-50" />
                     <p className="text-sm">분석할 데이터가 충분하지 않습니다.</p>
@@ -359,7 +357,7 @@ export function AISleepAnalysis({ analysisData }: AISleepAnalysisProps) {
                     영향 요인
                   </h4>
                   <div className="space-y-2">
-                    {prediction.factors.map((factor, index) => (
+                    {prediction.factors?.map((factor, index) => (
                       <div key={index} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">

@@ -2,8 +2,8 @@ const { calculateSleepQualityScore } = require("./analyzer");
 const { executeQuery } = require("./rds-config");
 
 let currentSensorData = {
-  humidity: null,
-  heartRate: null,
+  humidity: 0,
+  heartRate: 0,
   timestamp: new Date(),
 };
 

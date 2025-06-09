@@ -79,37 +79,37 @@ const PROMPT_TEMPLATES = {
 {
   "weeklyAnalysis": "주간 종합 분석",
   "humidityTrend": {
-    "current": 현재값,
-    "weeklyAverage": 주간평균,
-    "trend": "improving/declining/stable",
+    "current": "{humidity}",
+    "weeklyAverage": "주간평균값",
+    "trend": "improving/declining/stable 중 하나",
     "analysis": "습도 트렌드 분석"
   },
   "heartRateTrend": {
-    "current": 현재값,
-    "weeklyAverage": 주간평균,
-    "trend": "improving/declining/stable",
+    "current": "{heartRate}",
+    "weeklyAverage": "주간평균값",
+    "trend": "improving/declining/stable 중 하나",
     "analysis": "심박수 트렌드 분석"
   }
 }
+
+주의: 모든 숫자는 문자열로 변환하여 따옴표로 감싸주세요.
 `
 };
 
 // 프롬프트 생성 함수
 function createPrompt(template, data) {
-  const { currentEnvironment, sleepHistory } = data;
-  
   // 수면 기록 포맷팅
-  const formattedHistory = sleepHistory
+  const formattedHistory = data.sleepHistory
     .map(record => `${record.date}: 습도 ${record.averageHumidity}%, 심박수 ${record.averageHeartRate}bpm, 수면품질 ${record.sleepQualityScore}점`)
     .join("\n");
 
   // 템플릿의 플레이스홀더 치환
   return template
-    .replace("{humidity}", currentEnvironment.humidity)
-    .replace("{heartRate}", currentEnvironment.heartRate)
-    .replace("{humidifierStatus}", currentEnvironment.humidifierStatus)
-    .replace("{speakerStatus}", currentEnvironment.speakerStatus)
-    .replace("{volume}", currentEnvironment.volume)
+    .replace("{humidity}", data.humidity)
+    .replace("{heartRate}", data.heartRate)
+    .replace("{humidifierStatus}", data.humidifierStatus)
+    .replace("{speakerStatus}", data.speakerStatus)
+    .replace("{volume}", data.volume)
     .replace("{sleepHistory}", formattedHistory);
 }
 
@@ -119,7 +119,35 @@ async function getGeminiResponse(prompt) {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    return JSON.parse(response.text());
+    let text = response.text();
+
+    console.log("Raw Gemini API 응답:", text);
+
+    // JSON 형식 추출
+    const match = text.match(/```(?:json)?\n([\s\S]*?)```/) || text.match(/\{[\s\S]*\}/);
+    if (!match) {
+      throw new Error("응답에서 JSON을 찾을 수 없습니다.");
+    }
+
+    text = match[1] || match[0];
+    
+    // 작은따옴표를 큰따옴표로 변환
+    text = text.replace(/'/g, '"');
+    
+    // 따옴표 없는 속성 이름에 따옴표 추가
+    text = text.replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":');
+    
+    // 잘못된 줄바꿈과 공백 제거
+    text = text.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+
+    console.log("정제된 JSON:", text);
+
+    try {
+      return JSON.parse(text);
+    } catch (parseError) {
+      console.error("JSON 파싱 오류:", parseError);
+      throw new Error("JSON 파싱 실패: " + parseError.message);
+    }
   } catch (error) {
     console.error("Gemini API 호출 실패:", error);
     throw error;
@@ -129,19 +157,31 @@ async function getGeminiResponse(prompt) {
 // 수면 환경 인사이트 분석
 async function analyzeSleepInsights(data) {
   const prompt = createPrompt(PROMPT_TEMPLATES.insights, data);
-  return await getGeminiResponse(prompt);
+  const response = await getGeminiResponse(prompt);
+  return {
+    insights: response,
+    generatedAt: new Date().toISOString()
+  };
 }
 
 // 수면 품질 예측
 async function predictSleepQuality(data) {
   const prompt = createPrompt(PROMPT_TEMPLATES.prediction, data);
-  return await getGeminiResponse(prompt);
+  const response = await getGeminiResponse(prompt);
+  return {
+    ...response,
+    generatedAt: new Date().toISOString()
+  };
 }
 
 // 수면 트렌드 분석
 async function analyzeSleepTrends(data) {
   const prompt = createPrompt(PROMPT_TEMPLATES.trends, data);
-  return await getGeminiResponse(prompt);
+  const response = await getGeminiResponse(prompt);
+  return {
+    ...response,
+    generatedAt: new Date().toISOString()
+  };
 }
 
 module.exports = {

@@ -3,13 +3,11 @@ import { API_ENDPOINTS } from './api-config'
 // 클라이언트에서 Node.js 서버로 보낼 API 요청 타입들
 
 export interface SleepAnalysisRequest {
-  currentEnvironment: {
-    humidity: number
-    heartRate: number
-    humidifierStatus: string
-    speakerStatus: string
-    volume: number
-  }
+  humidity: number
+  heartRate: number
+  humidifierStatus: string
+  speakerStatus: string
+  volume: number
   sleepHistory: Array<{
     date: string
     averageHumidity: number
