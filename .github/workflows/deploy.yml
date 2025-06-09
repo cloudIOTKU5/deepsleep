@@ -32,6 +32,13 @@ jobs:
           RDS_HOST=${{ secrets.RDS_HOST }}
           RDS_USER=${{ secrets.RDS_USER }}
           RDS_PASSWORD=${{ secrets.RDS_PASSWORD }}
+          FITBIT_CLIENT_ID=${{ secrets.FITBIT_CLIENT_ID }}
+          FITBIT_CLIENT_SECRET=${{ secrets.FITBIT_CLIENT_SECRET }}
+          FITBIT_ACCESS_TOKEN=${{ secrets.FITBIT_ACCESS_TOKEN }}
+          FITBIT_REFRESH_TOKEN=${{ secrets.FITBIT_REFRESH_TOKEN }}
+          FITBIT_USER_ID=${{ secrets.FITBIT_USER_ID }}
+          FITBIT_REDIRECT_URI=${{ secrets.FITBIT_REDIRECT_URI }}
+          GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
           EOF
           echo ".env 파일 생성"
 
