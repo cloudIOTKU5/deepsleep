@@ -15,8 +15,26 @@ let currentDeviceStatus = {
   volume: 0,
 };
 
-function getCurrentSensorData() {
-  return currentSensorData;
+async function getCurrentSensorData() {
+  if (sensorDataRecords.length > 0) {
+    return sensorDataRecords[sensorDataRecords.length - 1];
+  }
+  try {
+    const rows = await executeQuery(
+      `SELECT humidity, heart_rate, timestamp FROM sensor_data ORDER BY timestamp DESC LIMIT 1`
+    );
+    if (rows.length > 0) {
+      currentSensorData = {
+        humidity: rows[0].humidity,
+        heartRate: rows[0].heart_rate,
+        timestamp: new Date(rows[0].timestamp),
+      };
+      return currentSensorData;
+    }
+  } catch (error) {
+    console.error("RDS에서 센서 데이터 가져오기 실패:", error);
+    return currentSensorData;
+  }
 }
 
 /**
