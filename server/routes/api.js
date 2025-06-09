@@ -11,7 +11,7 @@ const { checkDatabaseStatus } = require("../data/rds-config");
 // 현재 수면 데이터 상태 조회
 router.get("/sleep/status", async (req, res) => {
   try {
-    const currentSensorData = repository.getCurrentSensorData();
+    const currentSensorData = await repository.getCurrentSensorData();
 
     // IoT Core에서 디바이스 상태 가져오기
     const deviceStatusResult = await getDeviceStatus();
@@ -27,9 +27,8 @@ router.get("/sleep/status", async (req, res) => {
       volume: currentDeviceStatus.volume,
     });
   } catch (error) {
-    console.error('수면 상태 조회 오류:', error);
-    // 폴백으로 로컬 데이터 사용
-    const currentSensorData = repository.getCurrentSensorData();
+    console.error('디바이스 상태 조회 오류:', error);
+    const currentSensorData = await repository.getCurrentSensorData();
     const currentDeviceStatus = repository.getCurrentDeviceStatus();
 
     res.json({
