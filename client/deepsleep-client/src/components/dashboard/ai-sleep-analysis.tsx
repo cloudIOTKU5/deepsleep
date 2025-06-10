@@ -137,11 +137,6 @@ export function AISleepAnalysis({ analysisData }: AISleepAnalysisProps) {
     }
   }
 
-  // 초기 로드 및 데이터 변경 시 자동 분석
-  useEffect(() => {
-    loadInsights()
-  }, [analysisData.humidity, analysisData.heartRate, analysisData.humidifierStatus, analysisData.speakerStatus])
-
   const getInsightIcon = (type: string) => {
     switch (type) {
       case "positive":
@@ -267,37 +262,38 @@ export function AISleepAnalysis({ analysisData }: AISleepAnalysisProps) {
               </div>
             ) : (
               <div className="space-y-3">
-                {insights?.map((insight) => (
-                  <div
-                    key={insight.id}
-                    className={`p-4 border-l-4 ${getInsightBorderColor(insight.type)} bg-white dark:bg-gray-800 rounded-r-lg shadow-sm`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 mt-0.5">{getInsightIcon(insight.type)}</div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-                          <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100">{insight.title}</h4>
-                          <div className="flex items-center gap-2 flex-shrink-0">
-                            <Badge variant={getPriorityBadgeVariant(insight.priority)} className="text-xs">
-                              {insight.priority === "high" ? "높음" : insight.priority === "medium" ? "보통" : "낮음"}
-                            </Badge>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                              {insight.confidence}% 신뢰도
-                            </span>
+                {insights?.length > 0 ? (
+                  insights.map((insight) => (
+                    <div
+                      key={insight.id}
+                      className={`p-4 border-l-4 ${getInsightBorderColor(insight.type)} bg-white dark:bg-gray-800 rounded-r-lg shadow-sm`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 mt-0.5">{getInsightIcon(insight.type)}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                            <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100">{insight.title}</h4>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <Badge variant={getPriorityBadgeVariant(insight.priority)} className="text-xs">
+                                {insight.priority === "high" ? "높음" : insight.priority === "medium" ? "보통" : "낮음"}
+                              </Badge>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {insight.confidence}% 신뢰도
+                              </span>
+                            </div>
                           </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                            {insight.description}
+                          </p>
                         </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                          {insight.description}
-                        </p>
                       </div>
                     </div>
-                  </div>
-                ))}
-
-                {insights?.length === 0 && !isLoading.insights && (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    <Brain className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">분석할 데이터가 충분하지 않습니다.</p>
+                  ))
+                ) : !isLoading.insights && (
+                  <div className="text-center py-8">
+                    <Button onClick={() => loadInsights()} disabled={isLoading.insights}>
+                      수면 환경 분석 시작
+                    </Button>
                   </div>
                 )}
               </div>
